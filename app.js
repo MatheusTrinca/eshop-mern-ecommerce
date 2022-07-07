@@ -15,11 +15,13 @@ app.use(`${api}/products`, productsRouter);
 
 // Database Connection
 mongoose
-  .connect(process.env.CONNECTION_STRING)
+  .connect(process.env.CONNECTION_STRING, {
+    dbName: 'eshop-database',
+  })
   .then(() => console.log('Database connected'))
   .catch(err => console.log(err));
 
 // Server Listening
 app.listen(3000, () => console.log('Server listening on port 3000'));
 
-// 1:21:40
+// 1:24:00
