@@ -3,15 +3,20 @@ const mongoose = require('mongoose');
 require('dotenv/config');
 const api = process.env.API_URL;
 const morgan = require('morgan');
+const cors = require('cors');
 const app = express();
-const productsRouter = require('./routers/product');
+const productsRoutes = require('./routes/productRouter');
+const categoriesRoutes = require('./routes/categoryRouter');
 
 // Middlewares
+app.use(cors());
+app.options('*', cors());
 app.use(express.json());
 app.use(morgan('tiny'));
 
 // Routers
-app.use(`${api}/products`, productsRouter);
+app.use(`${api}/products`, productsRoutes);
+app.use(`${api}/categories`, categoriesRoutes);
 
 // Database Connection
 mongoose
@@ -24,4 +29,4 @@ mongoose
 // Server Listening
 app.listen(3000, () => console.log('Server listening on port 3000'));
 
-// 1:24:00
+// 2:07:21
