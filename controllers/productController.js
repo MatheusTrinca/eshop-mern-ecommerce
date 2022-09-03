@@ -3,10 +3,14 @@ const { Category } = require('../models/category');
 const { default: mongoose } = require('mongoose');
 
 exports.getAllProducts = async (req, res) => {
+  let filter = {};
+
+  if (req.query.categories) {
+    filter = { category: req.query.categories.split(',') };
+  }
+
   try {
-    const products = await Product.find()
-      .select('name image')
-      .populate('category');
+    const products = await Product.find(filter).populate('category');
     if (!products) {
       return res.status(404).json({
         success: false,
@@ -150,4 +154,29 @@ exports.deleteProduct = async (req, res) => {
       message: err.message,
     });
   }
+};
+
+exports.getCount = async (req, res) => {
+  const productCount = await Product.countDocuments();
+  if (!productCount) {
+    return res.status(500).json({
+      success: false,
+    });
+  }
+  res.send({
+    productCount: productCount,
+  });
+};
+
+exports.getFeatured = async (req, res) => {
+  const count = req.params.count ? req.params.count : 0;
+  const products = await Product.find({ isFeatured: true }).limit(+count);
+  if (!products) {
+    return res.status(500).json({
+      success: false,
+    });
+  }
+  res.send({
+    products: products,
+  });
 };
