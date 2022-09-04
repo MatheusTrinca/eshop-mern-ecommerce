@@ -7,6 +7,7 @@ const cors = require('cors');
 const app = express();
 const productsRoutes = require('./routes/productRouter');
 const categoriesRoutes = require('./routes/categoryRouter');
+const usersRoutes = require('./routes/userRouter');
 
 // Middlewares
 app.use(cors());
@@ -17,6 +18,7 @@ app.use(morgan('tiny'));
 // Routers
 app.use(`${api}/products`, productsRoutes);
 app.use(`${api}/categories`, categoriesRoutes);
+app.use(`${api}/users`, usersRoutes);
 
 // Database Connection
 mongoose
@@ -29,4 +31,4 @@ mongoose
 // Server Listening
 app.listen(3000, () => console.log('Server listening on port 3000'));
 
-// 2:35:28
+// 2:40:40

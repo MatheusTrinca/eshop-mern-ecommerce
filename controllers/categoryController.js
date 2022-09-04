@@ -15,7 +15,7 @@ exports.getAllCategories = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({
-      success: true,
+      success: false,
       message: err.message,
     });
   }
@@ -36,7 +36,7 @@ exports.getCategory = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({
-      success: true,
+      success: false,
       message: err.message,
     });
   }
