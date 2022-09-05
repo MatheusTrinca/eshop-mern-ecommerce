@@ -5,6 +5,7 @@ const api = process.env.API_URL;
 const morgan = require('morgan');
 const cors = require('cors');
 const authJwt = require('./helpers/jwt');
+const errorHandler = require('./helpers/errorHandler');
 const app = express();
 const productsRoutes = require('./routes/productRouter');
 const categoriesRoutes = require('./routes/categoryRouter');
@@ -16,6 +17,7 @@ app.options('*', cors());
 app.use(express.json());
 app.use(morgan('tiny'));
 app.use(authJwt());
+app.use(errorHandler);
 
 // Routers
 app.use(`${api}/products`, productsRoutes);
@@ -33,4 +35,4 @@ mongoose
 // Server Listening
 app.listen(3000, () => console.log('Server listening on port 3000'));
 
-// 3:11:18
+// 3:23:24

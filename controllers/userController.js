@@ -105,3 +105,37 @@ exports.loginUser = async (req, res) => {
     });
   }
 };
+
+exports.registerUser = async (req, res) => {
+  try {
+    let user = new User({
+      name: req.body.name,
+      email: req.body.email,
+      passwordHash: bcrypt.hashSync(req.body.password, 10),
+      phone: req.body.phone,
+      isAdmin: req.body.isAdmin,
+      street: req.body.street,
+      appartment: req.body.appartment,
+      zip: req.body.zip,
+      city: req.body.city,
+      country: req.body.country,
+    });
+    user = await user.save();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User cannot be created',
+      });
+    }
+    return res.status(201).json({
+      success: true,
+      data: user,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
