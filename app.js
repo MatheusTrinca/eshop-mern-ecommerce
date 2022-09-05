@@ -1,9 +1,10 @@
+require('dotenv/config');
 const express = require('express');
 const mongoose = require('mongoose');
-require('dotenv/config');
 const api = process.env.API_URL;
 const morgan = require('morgan');
 const cors = require('cors');
+const authJwt = require('./helpers/jwt');
 const app = express();
 const productsRoutes = require('./routes/productRouter');
 const categoriesRoutes = require('./routes/categoryRouter');
@@ -14,6 +15,7 @@ app.use(cors());
 app.options('*', cors());
 app.use(express.json());
 app.use(morgan('tiny'));
+app.use(authJwt());
 
 // Routers
 app.use(`${api}/products`, productsRoutes);
@@ -31,4 +33,4 @@ mongoose
 // Server Listening
 app.listen(3000, () => console.log('Server listening on port 3000'));
 
-// 2:40:40
+// 3:11:18
