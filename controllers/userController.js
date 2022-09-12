@@ -96,7 +96,9 @@ exports.loginUser = async (req, res) => {
         message: 'Invalid user or password',
       });
     }
-    const token = jwt.sign({ userId: user.id }, secret, { expiresIn: '1d' });
+    const token = jwt.sign({ userId: user.id, isAdmin: user.isAdmin }, secret, {
+      expiresIn: '1d',
+    });
     return res.status(200).json({ email: user.email, token });
   } catch (err) {
     return res.status(500).json({
@@ -131,6 +133,33 @@ exports.registerUser = async (req, res) => {
     return res.status(201).json({
       success: true,
       data: user,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+exports.getCount = async (req, res) => {
+  const userCount = await User.countDocuments();
+  if (!userCount) {
+    return res.status(500).json({
+      success: false,
+    });
+  }
+  res.send({
+    userCount: userCount,
+  });
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    await User.findByIdAndRemove(req.params.id);
+    return res.status(204).json({
+      success: true,
+      message: 'User deleted',
     });
   } catch (err) {
     return res.status(500).json({

@@ -3,7 +3,11 @@ const { expressjwt: jwt } = require('express-jwt');
 const authJwt = () => {
   const secret = process.env.SECRET;
   const api = process.env.API_URL;
-  return jwt({ secret, algorithms: ['HS256'] }).unless({
+  return jwt({
+    secret,
+    algorithms: ['HS256'],
+    isRevoked: isRevokedCallback,
+  }).unless({
     path: [
       {
         url: /\/api\/v1\/products(.*)/,
@@ -17,6 +21,12 @@ const authJwt = () => {
       `${api}/users/register`,
     ],
   });
+};
+
+const isRevokedCallback = async (req, token) => {
+  if (!token.payload.isAdmin) {
+    return true;
+  }
 };
 
 module.exports = authJwt;
