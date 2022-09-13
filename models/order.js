@@ -3,10 +3,9 @@ const mongoose = require('mongoose');
 const orderSchema = mongoose.Schema({
   orderItems: [
     {
-      orderItem: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'OrderItem',
-      },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'OrderItem',
+      required: true,
     },
   ],
   shippingAddress1: {
