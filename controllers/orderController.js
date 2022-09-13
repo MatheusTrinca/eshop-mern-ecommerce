@@ -146,7 +146,7 @@ exports.deleteOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: 'Order not found',
       });
@@ -166,4 +166,32 @@ exports.deleteOrder = async (req, res) => {
       message: err.message,
     });
   }
+};
+
+exports.getTotalSales = async (req, res) => {
+  const totalSales = await Order.aggregate([
+    { $group: { _id: null, totalSales: { $sum: '$totalPrice' } } },
+  ]);
+  if (!totalSales) {
+    return res.status(400).json({
+      success: false,
+      message: 'Order sales cannot be generated',
+    });
+  }
+  return res.send({
+    totalSales: totalSales.pop().totalSales,
+  });
+};
+
+exports.getCount = async (req, res) => {
+  const orderCount = await Order.countDocuments();
+  if (!orderCount) {
+    return res.status(500).json({
+      success: false,
+      message: 'Orders count cannot be generated',
+    });
+  }
+  res.send({
+    orderCount: orderCount,
+  });
 };

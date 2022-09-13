@@ -1,6 +1,31 @@
 const { Product } = require('../models/product');
 const { Category } = require('../models/category');
 const { default: mongoose } = require('mongoose');
+const multer = require('multer');
+
+const FILE_TYPE_MAP = {
+  'image/png': 'png',
+  'image/jpeg': 'jpeg',
+  'image/jpg': 'jpg',
+};
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const isValid = FILE_TYPE_MAP[file.mimetype];
+    let uploadError = new Error('Invalid image type');
+    if (isValid) {
+      uploadError = null;
+    }
+    cb(uploadError, 'public/uploads');
+  },
+  filename: function (req, file, cb) {
+    const filename = file.originalname.replace(' ', '-');
+    const extension = FILE_TYPE_MAP[file.mimetype];
+    cb(null, `${filename}-${Date.now()}.${extension}`);
+  },
+});
+
+exports.upload = multer({ storage: storage });
 
 exports.getAllProducts = async (req, res) => {
   let filter = {};
@@ -62,11 +87,24 @@ exports.createProduct = async (req, res) => {
       });
     }
 
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No image in the request',
+      });
+    }
+
+    const fileName = req.file.filename;
+
+    const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+
     let product = new Product({
       name: req.body.name,
       description: req.body.description,
       richDescription: req.body.richDescription,
-      image: req.body.image,
+      image: `${basePath}${fileName}`, // http://localhost:3000/public/upload/image-232323
       images: req.body.images,
       brand: req.body.brand,
       price: req.body.price,
@@ -161,6 +199,7 @@ exports.getCount = async (req, res) => {
   if (!productCount) {
     return res.status(500).json({
       success: false,
+      message: 'Products count cannot be generated',
     });
   }
   res.send({
@@ -179,4 +218,46 @@ exports.getFeatured = async (req, res) => {
   res.send({
     products: products,
   });
+};
+
+exports.updateGalleryImages = async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid product ID',
+      });
+    }
+
+    const files = req.files;
+
+    const filesPaths = [];
+
+    const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+
+    if (files) {
+      files.forEach(file => {
+        filesPaths.push(`${basePath}${file.filename}`);
+      });
+    }
+
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        images: filesPaths,
+      },
+      {
+        new: true,
+      }
+    );
+    return res.status(200).json({
+      success: true,
+      data: product,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
 };
