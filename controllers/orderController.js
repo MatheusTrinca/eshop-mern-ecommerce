@@ -195,3 +195,29 @@ exports.getCount = async (req, res) => {
     orderCount: orderCount,
   });
 };
+
+exports.getUserOrders = async (req, res) => {
+  try {
+    const userOrders = await Order.find({ user: req.params.userId })
+      .populate({
+        path: 'orderItems',
+        populate: { path: 'product', populate: 'category' },
+      })
+      .sort({ dateOrdered: -1 });
+
+    if (!userOrders) {
+      return res.status(500).json({
+        success: false,
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      data: userOrders,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
