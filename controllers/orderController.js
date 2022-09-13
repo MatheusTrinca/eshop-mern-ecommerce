@@ -66,10 +66,22 @@ exports.createOrder = async (req, res) => {
       })
     );
 
-    const result = await orderItemsIds;
+    const orderItemsIdsResolved = await orderItemsIds;
+
+    const totalPrices = await Promise.all(
+      orderItemsIdsResolved.map(async orderItemId => {
+        const orderItem = await OrderItem.findById(orderItemId).populate(
+          'product',
+          'price'
+        );
+        return orderItem.product.price * orderItem.quantity;
+      })
+    );
+
+    const totalPrice = totalPrices.reduce((a, b) => a + b, 0);
 
     let order = new Order({
-      orderItems: result,
+      orderItems: orderItemsIdsResolved,
       shippingAddress1: req.body.shippingAddress1,
       shippingAddress2: req.body.shippingAddress2,
       city: req.body.city,
@@ -77,7 +89,7 @@ exports.createOrder = async (req, res) => {
       country: req.body.country,
       phone: req.body.phone,
       status: req.body.status,
-      totalPrice: req.body.totalPrice,
+      totalPrice: totalPrice,
       user: req.body.user,
     });
 
@@ -95,6 +107,61 @@ exports.createOrder = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+exports.updateOrder = async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: req.body.status,
+      },
+      {
+        new: true,
+      }
+    );
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      data: order,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+exports.deleteOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+
+    await OrderItem.deleteMany({ _id: order.orderItems });
+
+    await order.delete();
+
+    res.status(200).json({
+      success: true,
+      message: 'Order deleted',
+    });
+  } catch (err) {
+    res.status(500).json({
       success: false,
       message: err.message,
     });
